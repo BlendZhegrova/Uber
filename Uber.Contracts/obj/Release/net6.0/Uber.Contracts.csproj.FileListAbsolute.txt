@@ -1,0 +1,14 @@
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\bin\Release\net6.0\Uber.Contracts.deps.json
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\bin\Release\net6.0\Uber.Contracts.runtimeconfig.json
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\bin\Release\net6.0\Uber.Contracts.dll
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\bin\Release\net6.0\Uber.Contracts.pdb
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.csproj.AssemblyReference.cache
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.AssemblyInfoInputs.cache
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.AssemblyInfo.cs
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.csproj.CoreCompileInputs.cache
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.dll
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\refint\Uber.Contracts.dll
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.pdb
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\Uber.Contracts.genruntimeconfig.cache
+C:\Users\blend\OneDrive\Desktop\Uber\Uber.Contracts\obj\Release\net6.0\ref\Uber.Contracts.dll
