@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
+
 namespace Uber.Domain;
 
-public class User
+public class User : IdentityUser
 {
     [Key]
     public Guid Id { get; set; }
@@ -15,5 +17,4 @@ public class User
     public DateTime RegistrationDate { get; set; } 
     public string State { get; set; }
     public string StateCode { get; set; }
-    
 }

@@ -28,14 +28,14 @@ builder.Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
 app.UseSwagger(option => option.RouteTemplate = swaggerOptions.JsonRoute);
 app.UseSwaggerUI(swaggerUiOptions =>
 {
-    swaggerUiOptions.DocumentTitle = "TwitterBook";
+    swaggerUiOptions.DocumentTitle = "Uber";
     swaggerUiOptions.SwaggerEndpoint(swaggerOptions.UIEndpoint, swaggerOptions.Description);
     swaggerUiOptions.RoutePrefix = string.Empty;
 });
 
 if (app.Environment.IsDevelopment())
 {
-    //app.UseMigrationsEndPoint();
+    app.UseMigrationsEndPoint();
 }
 else
 {
@@ -48,8 +48,6 @@ app.UseStaticFiles();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.MapRazorPages();
 app.AddGlobalErrorHandler();
-app.MapControllers();
 app.Run();

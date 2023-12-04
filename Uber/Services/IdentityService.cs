@@ -3,7 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Uber.Contract.V1.Requests;
 using Uber.Data;
 using Uber.Domain;
 using Uber.Options;
@@ -27,51 +29,74 @@ public class IdentityService : IIdentityService
         _tokenValidationParameters = tokenValidationParameters;
         _context = context;
     }
-    
-    public async Task<AuthenticationResult> RegisterAsync(string email, string password)
+
+    public async Task<AuthenticationResult> RefreshTokenAsync(string requestToken, string refreshToken)
     {
-        var existing = await _userManager.FindByEmailAsync(email);
-        if (existing != null)
+        var validatedToken = GetPrincipalFromToken(requestToken);
+        if (validatedToken == null)
         {
-            return new AuthenticationResult
+            return new AuthenticationResult()
             {
-                Errors = new[] { "User with this email already exists!" }
+                Errors = new[] { "Invalid token" }
             };
         }
 
-        var newUserId = Guid.NewGuid();
-        var newUser = new IdentityUser
+        var expiryDateUnix = long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+        var expiryDateUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(expiryDateUnix);
+        if (expiryDateUtc > DateTime.Now)
         {
-            Id = newUserId.ToString(),
-            Email = email,
-            UserName = email,
-        };
-        var createdUser = await _userManager.CreateAsync(newUser, password);
-        
-        // await _userManager.AddClaimAsync(newUser, new Claim("tags.View","true"));
-        
-        if (!createdUser.Succeeded)
-        {
-            return new AuthenticationResult
+            return new AuthenticationResult()
             {
-                Errors = createdUser.Errors.Select(x => x.Description)
+                Errors = new[] { "This token has not expired yet." }
             };
         }
 
-        return await GenerateAuthenticationResultForUserAsync(newUser);
+        var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+        var storedRefreshTokens = await _context.RefreshTokens.SingleOrDefaultAsync(x => x.Token == refreshToken);
+        if (storedRefreshTokens == null)
+        {
+            return new AuthenticationResult
+            {
+                Errors = new[] { "This token hasnt expired yet" }
+            };
+        }
+        if (DateTime.UtcNow > storedRefreshTokens.ExpiryDate)
+        {
+            return new AuthenticationResult
+            {
+                Errors = new[] { "This token has expired!" }
+            };
+        }
+        if (storedRefreshTokens.Invalidated)
+        {
+            return new AuthenticationResult
+            {
+                Errors = new[] { "This token has been invalidated" }
+            };
+        }
+        if (storedRefreshTokens.Used)
+        {
+            return new AuthenticationResult
+            {
+                Errors = new[] { "This token has been used" }
+            };
+        }
+        if (storedRefreshTokens.JwtId != jti)
+        {
+            return new AuthenticationResult
+            {
+                Errors = new[] { "This token does not match this JWT"}
+            };
+        }
+
+        storedRefreshTokens.Used = true;
+        _context.RefreshTokens.Update(storedRefreshTokens);
+        await _context.SaveChangesAsync();
+        var user = await _userManager.FindByIdAsync(validatedToken.Claims.Single(x => x.Type=="id").Value);
+        return await GenerateAuthenticationResultForUserAsync(user);
     }
 
-    public Task<AuthenticationResult> LoginAsync(string email, string password)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<AuthenticationResult> RefreshTokenAsync(string requestToken, string refreshToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    private async Task<AuthenticationResult> GenerateAuthenticationResultForUserAsync(IdentityUser user)
+    public async Task<AuthenticationResult> GenerateAuthenticationResultForUserAsync(IdentityUser user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
@@ -80,11 +105,12 @@ public class IdentityService : IIdentityService
             new Claim(JwtRegisteredClaimNames.Sub,user.Email),
             new Claim(JwtRegisteredClaimNames.Sub,Guid.NewGuid().ToString()), //token indentifier
             new Claim(JwtRegisteredClaimNames.Sub,user.Email),
-            new Claim("Id", user.Id)
+            new Claim("Id", user.Id.ToString())
         };
 
         var userClaims = await _userManager.GetClaimsAsync(user);
         var userRoles = await _userManager.GetRolesAsync(user);
+        
         foreach (var role in userRoles)
         {
             claims.Add(new Claim("Role", role));
@@ -100,7 +126,7 @@ public class IdentityService : IIdentityService
         RefreshToken refreshToken = new()
         {
             JwtId = token.Id,
-            UserId = user.Id,
+            UserId = user.Id.ToString(),
             ExpiryDate = DateTime.UtcNow.AddDays(1)
         };
         await _context.RefreshTokens.AddAsync(refreshToken);

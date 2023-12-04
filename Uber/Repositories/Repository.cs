@@ -1,30 +1,52 @@
-﻿using Uber.Repositories.Interface;
+﻿using Microsoft.EntityFrameworkCore;
+using Uber.Data;
+using Uber.Repositories.Interface;
+
 namespace Uber.Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
 {
-    public Task<List<T>> GetAll()
+    private DataContext _context;
+
+    public Repository(DataContext context)
     {
-        throw new NotImplementedException();
+        _context = context;
     }
 
-    public Task<T> Get(int id)
+    public async Task<IEnumerable<T>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Set<T>().ToListAsync();
     }
 
-    public Task<T> Add(T entity)
+    public  async Task<T> GetByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Set<T>().FindAsync(id);
     }
 
-    public Task<T> Update(T entity)
+    public async Task<T> AddAsync(T entity)
     {
-        throw new NotImplementedException();
+        _context.Set<T>().Add(entity);
+        await _context.SaveChangesAsync();
+        return entity;
     }
 
-    public Task<T> Delete(int id)
+    public async Task<T> UpdateAsync(T entity)
     {
-        throw new NotImplementedException();
+        _context.Set<T>().Update(entity);
+        await _context.SaveChangesAsync();
+        return entity;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var entity = await GetByIdAsync(id);
+        if (entity == null)
+        {
+            return false;
+        }
+
+        _context.Set<T>().Remove(entity);
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
